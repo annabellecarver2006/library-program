@@ -1,102 +1,66 @@
-##to do:
-#error messages
-#valueerrors
-#putting the books into seperate frames so they can be displayed side by side
-#figure out how the error messages are going to be done
-#make the classes mor eefficient- one check out button with a drop down menu, one restock button with a drop out menu etc. 
-
-#setting up
 from tkinter import *
-root = Tk()
-root.title("Library Books")
 
-#Cart variables and making the cart variable changeable
-cart = 0
-cart_text = StringVar()
-cart_text.set("Checked Out: {}".format(cart))
-
-error_text=StringVar()
-error_text.set("")
-
-#Class for the books
-class Books:
-  #initializing and setting up
-  def __init__(self, title, author, stock):
+######################## BOOKINFO CLASS ##########################
+class BookInfo:
+  def __init__(self, master, title, author, stock):
+    #Setting up the variables
     self.title = title
     self.author = author
-    self._stock = stock
+    self.stock = stock
+    self.master = master
+    book_list.append(self)
 
-    self.titletext = StringVar()
-    self.titletext.set("Title: {}".format(self.title))
+  def check_out(self):
+    if self.stock >= 1:
+      self.stock -= 1
+      global cart
+      global cart_text
+      cart+=1
+      cart_text.set("Checked Out: {}".format(cart))
+      return True
+    else:
+      return False
 
-    self.stocktext = StringVar()
-    self.stocktext.set("Stock: {}".format(self._stock))
-    #labels for the title author and stock
-    show_title = Label(root, textvariable = self.titletext)
-    show_title.pack()
-    show_author = Label(root, text="Author: {}".format(self.author))
-    show_author.pack()
-    show_stock = Label(root, textvariable= self.stocktext)
-    show_stock.pack()
+  def restock(self):
+    text = int(self.restock_var.get())
+    print(text)
+    if self.stock + text <= 99:
+      self.stock += text
+      return True
+    else:
+      return False
 
-  #function to create a button that lets the user check out a book
-  def check_out_button(self):
-    global error_text
-    #the command
-    def check_out():
-      if self._stock >= 1:
-        self._stock-=1
-        self.stocktext.set("Stock: {}".format(self._stock))
-        global cart
-        global cart_text
-        cart +=1
-        cart_text.set("Checked Out: {}".format(cart))
-        print (cart)
-        error_text.set("checkout successful")
-      else: 
-        self.stocktext.set("Out of stock!")
-        error_text.set("checkout failed due to lack of stock")
-    #the button
-    button_1 = Button(root, text = "Check Out", command = lambda:check_out())
-    button_1.pack()
-
-  def restock_entry(self):
-    restock_label = Label(root, text="Enter amount to restock")
-    restock_label.pack()
-    name_var = StringVar()
-    name_var.set("")
-    name_entry = Entry(root, textvariable = name_var)
-    name_entry.pack(padx=20)
-    def button_command():
-      global error_text
-      try:
-        text = int(name_var.get())
-        print(text)
-        if self._stock+text <= 99:
-          self._stock +=text
-          self.stocktext.set("Stock: {}".format(self._stock))
-          name_var.set("")
-          error_text.set("restock successful!")
-        else:
-          print("restock failed")
-          error_text.set("restock failed")
-      except ValueError:
-        print("enter a number pleadse")
-    button_thing = Button(root, text = "enter", command = lambda:button_command())
-    button_thing.pack()
-
-cart_label = Label(root, textvariable = cart_text, font=("arial","11", "bold"))
-cart_label.pack()
-
-error_label=Label(root, textvariable=error_text, fg = "red")
-error_label.pack()
-
-b1 = Books("1984","George Orwell", 10)
-b1.check_out_button()
-b1.restock_entry()
+####################### FUNCTIONS+OTHER ###########################
+def create_title_list():
+  title_list=[]
+  for book in book_list:
+    book_list.append(book.title)
+  return title_list
 
 
-b2 = Books("To Kill A Mockingbird", "I dunno", 90)
-b2.check_out_button()
-b2.restock_entry()
+# Variables and lists setup
+book_list = []
+cart = 0
+
+######################## GUI #####################################
+root = Tk()
+root.title("Annie's Library")
+
+cart_text=StringVar()
+cart_text.set:("Checked_out: 0")
+
+book_1 = BookInfo(root, "1984", "George Orwell", 10)
+book_2 = BookInfo(root, "to kill a mockingbird", "Dunno", 10)
+book_3=BookInfo(root, "Harry Potter", "J.K Rowling", 50)
+
+cart_label=Label(root, textvariable= cart_text)
+cart_label.grid()
+
+for book in book_list:
+    show_title = Label(root, text="Title: {}".format(book.title))
+    show_title.grid()
+    show_author = Label(root, text="Author: {}\n".format(book.author))
+    show_author.grid()
+    cart_button=Button(root, text="Check Out", command=lambda:book.check_out() )
+    cart_button.grid()
 root.mainloop()
