@@ -1,111 +1,146 @@
-##to do:
-#error messages
-#valueerrors
-#putting the books into seperate self.masters so they can be displayed side by side
-#figure out how the error messages are going to be done
-#make the classes mor eefficient- one check out button with a drop down menu, one restock button with a drop out menu etc. 
 
-#setting up
+
 from tkinter import *
 
-#Cart variables and making the cart variable changeable
-
-
-#Class for the books
-class Books:
-  #initializing and setting up
-  def __init__(self, master, title, author, stock):
+######################## BOOKINFO CLASS ##########################
+class BookInfo:
+  def __init__(self, title, author, stock):
+    #Setting up the variables
     self.title = title
     self.author = author
-    self._stock = stock
-    self.master=master
+    self.stock = stock
+    book_list.append(self)
 
-    self.titletext = StringVar()
-    self.titletext.set("Title: {}".format(self.title))
-
-    self.stocktext = StringVar()
-    self.stocktext.set("Stock: {}".format(self._stock))
-    
-    #labels for the title author and stock
-    show_title = Label(self.master, textvariable = self.titletext)
-    show_title.pack()
-    show_author = Label(self.master, text="Author: {}".format(self.author))
-    show_author.pack()
-    show_stock = Label(self.master, textvariable= self.stocktext)
-    show_stock.pack()
-
-    button_1 = Button(self.master, text = "Check Out", command = lambda:self.check_out())
-    button_1.pack()
-
-
-
-  #function to create a button that lets the user check out a book
   def check_out(self):
-    global error_text
-    if self._stock >= 1:
-      self._stock-=1
-      self.stocktext.set("Stock: {}".format(self._stock))
+    if self.stock >= 1:
+      self.stock -= 1
       global cart
       global cart_text
-      cart +=1
+      cart+=1
       cart_text.set("Checked Out: {}".format(cart))
-      print (cart)
-      error_text.set("checkout of '{}' successful".format(self.title))
-    else: 
-      self.stocktext.set("Out of stock!")
-      error_text.set("checkout failed due to lack of stock")
+      return True
+    else:
+      return False
 
-  def restock_entry(self,frame):
-    restock_label = Label(frame, text="Enter amount to restock")
-    restock_label.pack()
-    self.name_var = StringVar()
-    self.name_var.set("")
-    name_entry = Entry(frame, textvariable = self.name_var)
-    name_entry.pack(padx=20)
-    button_thing = Button(frame, text = "enter", command = lambda:self.enter_button())
-    button_thing.pack()
-
-  def enter_button(self):
-    global error_text
+  def restock(self):
+    global name_var
+    text = int(name_var.get())
+    print(text)
     try:
-      text = int(self.name_var.get())
-      print(text)
-      if self._stock+text <= 99:
-        self._stock +=text
-        self.stocktext.set("Stock: {}".format(self._stock))
-        self.name_var.set("")
-        error_text.set("restock successful!")
+      if self.stock + text <= 99:
+        self.stock += text
+        return True
       else:
-        print("restock failed")
-        error_text.set("restock failed")
+        return False
     except ValueError:
-      print("enter a number pleadse")
+      return False
 
+######################## GUI CLASS ###############################
+class BookInfoGUI:
+  def __init__(self, master, book):
+    self.book=book
+    self.master=master
+
+    self.stocktext=StringVar()
+    self.stocktext.set("Stock: {}".format(self.book.stock))
+    
+    show_title = Label(self.master, text ="Title: {}".format( self.book.title))
+    show_title.pack()
+    show_author = Label(self.master, text="Author: {}".format(self.book.author))
+    show_author.pack()
+    show_stock = Label(self.master, textvariable = self.stocktext)
+    show_stock.pack()
+    check_out_button=Button(self.master, text="Check Out", command=lambda:self.update_checkout())
+    check_out_button.pack()
+
+  def update_checkout(self):
+    global notification_text
+    if self.book.check_out():
+      notification_text.set("Checkout Successful!")
+      self.stocktext.set("Stock: {}".format(self.book.stock))
+    else:
+      notification_text.set("Checkout failed due to insufficient stock. ")
+
+  def update_restock(self):
+    global notification_text
+    if self.book.restock():
+      notification_text.set("Restock Successful!")
+      self.stocktext.set("Stock: {}".format(self.book.stock))
+    else: 
+      notification_text.set("Restock failed. Please make sure to enter a number. ")
+    
+class RestockEntryGUI:
+  def __init__(self, master, book):
+    self.book=book
+    self.master=master
+
+
+  
+
+
+################## FUNCTIONS OUTSIDE THE CLASSES #################
+def create_title_list():
+  title_list = []
+  for book in book_list:
+    title_list.append(book.title)
+  return title_list
+
+def enter_button_command():
+  option_selection=active_string.get()
+  if option_selection==create_title_list()[0]:
+    gui_1.update_restock()
+  elif option_selection ==create_title_list()[1]:
+    gui_2.update_restock()
+  elif option_selection == create_title_list()[2]:
+    gui_3.update_restock()
+  else:
+    notification_text.set("Please make sure to select a book before prressing enter")
+
+def restock_entry():
+  restock_label = Label(root, text="Enter amount to restock")
+  global name_var
+  name_var.set("")
+  name_entry = Entry(root, textvariable = name_var)
+  enter_button = Button(root, text = "enter", command = lambda:enter_button_command())
+  restock_label.pack()
+  name_entry.pack(padx=20)
+  enter_button.pack()
+  
+  
+
+###################### GUI and main routine ######################
 root = Tk()
-root.title("Library Books")
-cart = 0
-cart_text = StringVar()
-cart_text.set("Checked Out: {}".format(cart))
-
-error_text=StringVar()
-error_text.set("")
-
-cart_label = Label(root, textvariable = cart_text, font=("arial","11", "bold"))
-cart_label.grid(row = 0, columnspan = 2, sticky=E+W)
-
-error_label=Label(root, textvariable=error_text, fg = "red")
-error_label.grid(row = 1, columnspan = 2, sticky=E+W)
-
-frame_1=Frame(root)
-frame_2=Frame(root)
-b1 = Books(frame_1,"1984","George Orwell", 10)
-frame_1.grid(row = 2, column =0)
-frame_3=Frame(root)
-restock_button=Button(root, text ="Restock", command = lambda:b1.restock_entry(frame_3))
-restock_button.grid(row = 3, columnspan = 2, sticky = E+W, padx = 70)
-frame_3.grid(row = 4, columnspan = 2, sticky=E+W)
+root.title("Annie's Library")
+book_list = []
+title_list=[]
+cart=0
+active_string=StringVar()
+name_var = StringVar()
 
 
-b2 = Books(frame_2,"To Kill A Mockingbird", "I dunno", 90)
-frame_2.grid(row = 2, column = 1)
+cart_text=StringVar()
+cart_text.set("Checked out: 0")
+cart_label=Label(root, textvariable= cart_text,font=("arial","11", "bold"))
+cart_label.pack()
+
+notification_text=StringVar()
+notification_text.set("")
+notification_label = Label(root, textvariable= notification_text, fg=("red"))
+notification_label.pack()
+
+book_1 = BookInfo("1984", "George Orwell", 10)
+book_2 = BookInfo("to kill a mockingbird", "Dunno", 10)
+book_3=BookInfo("Harry Potter", "J.K Rowling", 50)
+
+gui_1=BookInfoGUI(root,book_1)
+gui_2 = BookInfoGUI(root, book_2)
+gui_3=BookInfoGUI(root, book_3)
+
+options=create_title_list()
+active_string.set("Pick a Book")
+restock_option=OptionMenu(root, active_string, *options)
+restock_option.pack()
+
+restock_entry()
+
 root.mainloop()
